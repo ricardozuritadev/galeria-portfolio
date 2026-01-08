@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { GalleryImage as GalleryImageType } from '@/types/gallery';
 import { getResponsiveImageUrl } from '@/lib/imagekit';
@@ -15,9 +16,31 @@ export default function GalleryImage({
   onClick,
   priority = false,
 }: GalleryImageProps) {
+  const [imageError, setImageError] = useState(false);
+  
   // Calculate responsive width based on viewport
   // Mobile: ~100vw, Tablet: ~50vw, Desktop: ~33vw
-  const src = getResponsiveImageUrl(image.url, 800);
+  const src = image.url ? getResponsiveImageUrl(image.url, 800) : '';
+
+  const handleError = () => {
+    console.error('Failed to load image:', {
+      originalUrl: image.url,
+      processedUrl: src,
+      alt: image.alt,
+    });
+    setImageError(true);
+  };
+
+  if (!image.url || imageError) {
+    return (
+      <div
+        className="relative w-full cursor-pointer overflow-hidden rounded-lg group bg-gray-200 flex items-center justify-center min-h-[200px]"
+        onClick={onClick}
+      >
+        <div className="text-gray-400 text-sm">Image not available</div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -33,6 +56,7 @@ export default function GalleryImage({
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         loading={priority ? 'eager' : 'lazy'}
         unoptimized={image.url.startsWith('http')}
+        onError={handleError}
       />
     </div>
   );

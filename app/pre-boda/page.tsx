@@ -1,32 +1,35 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Gallery from '@/components/Gallery';
 import ImageModal from '@/components/ImageModal';
 import { GalleryImage } from '@/types/gallery';
 
-// Sample images - replace with your actual ImageKit.io image paths
-const images: GalleryImage[] = [
-  {
-    id: '1',
-    url: '/placeholder-pre-boda-1.jpg',
-    alt: 'Pre-Boda 1',
-  },
-  {
-    id: '2',
-    url: '/placeholder-pre-boda-2.jpg',
-    alt: 'Pre-Boda 2',
-  },
-  {
-    id: '3',
-    url: '/placeholder-pre-boda-3.jpg',
-    alt: 'Pre-Boda 3',
-  },
-];
-
 export default function PreBodaPage() {
+  const [images, setImages] = useState<GalleryImage[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadImages() {
+      try {
+        const response = await fetch('/api/images?folder=pre-boda');
+        if (!response.ok) {
+          throw new Error('Failed to fetch images');
+        }
+        const data = await response.json();
+        setImages(data.images || []);
+      } catch (error) {
+        console.error('Error loading images:', error);
+        setImages([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadImages();
+  }, []);
 
   const handleImageClick = (index: number) => {
     setSelectedImageIndex(index);
@@ -52,19 +55,38 @@ export default function PreBodaPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white">
+        <Navigation />
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-600">Loading images...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
-      <Gallery images={images} onImageClick={handleImageClick} />
-      {selectedImageIndex !== null && (
-        <ImageModal
-          images={images}
-          currentIndex={selectedImageIndex}
-          isOpen={true}
-          onClose={handleCloseModal}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-        />
+      {images.length > 0 ? (
+        <>
+          <Gallery images={images} onImageClick={handleImageClick} />
+          {selectedImageIndex !== null && (
+            <ImageModal
+              images={images}
+              currentIndex={selectedImageIndex}
+              isOpen={true}
+              onClose={handleCloseModal}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+            />
+          )}
+        </>
+      ) : (
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-600">No images found</p>
+        </div>
       )}
     </div>
   );
