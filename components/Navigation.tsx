@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navigationItems = [
-  { name: 'Pre-Boda', path: '/pre-boda' },
+  { name: 'Bodas y Pre-Bodas', path: '/pre-boda' },
   { name: 'Pareja', path: '/pareja' },
   { name: 'Maternidad', path: '/maternidad' },
 ];
